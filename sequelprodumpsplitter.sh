@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # Current Version: 1.0
-# Extracts database, table, all databases, all tables or tables matching on regular expression from Sequel Pro exporter.
+# Extracts database, table, all databases, all tables or tables matching on regular expression from Sequel Pro exported dump.
 # Includes output compression options.
 # Follow GIT: https://github.com/akositey/sequelprodumpsplitter/
-# Credit: Kedar Vaijanapurkar for creating mysqldumpsplitter which this project is based from
+# Credits: Kedar Vaijanapurkar for creating mysqldumpsplitter which this project is based from
 
 # ToDo: Work with straming input
 ## Formating Colour
