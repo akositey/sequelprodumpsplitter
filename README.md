@@ -1,15 +1,9 @@
-# sequelprodumpsplitter - MySQL Dump splitter to split / extract databases, tables, list from Sequel Pro SQL dump with plenty of more functionality.
+# sequelprodumpsplitter - split / extract tables from Sequel Pro SQL dump.
 
 ### Usage:
-
-Download the utility from git repository.
-<hr>
-	************ Usage ************ 
-
-sh sequelprodumpsplitter.sh --source filename --desc --extract [TABLE|ALLTABLES|REGEXP] --match_str string --compression [gzip|pigz|bzip2|none] --decompression [gzip|pigz|bzip2|none] --output_dir [path to output dir] [--config /path/to/config] 
+`sh sequelprodumpsplitter.sh --source filename --desc --extract [TABLE|ALLTABLES|REGEXP] --match_str string --compression [gzip|pigz|bzip2|none] --decompression [gzip|pigz|bzip2|none] --output_dir [path to output dir] [--config /path/to/config]`
                                                     
-<h4>Options:</h4>
-                                                    
+<h4>Options:</h4>                                        
 	--source: Sequel Pro SQL dump filename to process. It could be a compressed or regular file.
 	--desc: This option will list out all databases and tables.
 	--extract: Specify what to extract. Possible values TABLE, ALLTABLES, REGEXP
@@ -25,9 +19,8 @@ sh sequelprodumpsplitter.sh --source filename --desc --extract [TABLE|ALLTABLES|
 		OUTPUT_DIR=
 		MATCH_STR=
 
-<hr>
 
-### sequelprodumpsplitter recipe:
+### Sample Recipes:
 
 1. Extract single table from Sequel Pro SQL dump:
 	`sh sequelprodumpsplitter.sh --source filename --extract TABLE --match_str table-name`
