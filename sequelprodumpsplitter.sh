@@ -1,36 +1,10 @@
 #!/bin/sh
 
-# Current Version: 6.1
-# Extracts database, table, all databases, all tables or tables matching on regular expression from the mysqldump.
+# Current Version: 1.0
+# Extracts database, table, all databases, all tables or tables matching on regular expression from Sequel Pro exporter.
 # Includes output compression options.
-# By: Kedar Vaijanapurkar
-# Website: http://kedar.nitty-witty.com/blog
-# Original Blog Post: http://kedar.nitty-witty.com/blog/mydumpsplitter-extract-tables-from-mysql-dump-shell-script
-# Follow GIT: https://github.com/kedarvj/mysqldumpsplitter/
-
-## Version Info:
-# Ver. 1.0: Feb 11, 2010
-# ... Initial version extract table(s) based on name, regexp or all of them from database-dump.
-# Ver. 2.0: Feb, 2015
-# ... Added database extract and compression
-# Ver. 3.0: March, 2015
-# ... Complete rewrite.
-# ... Extract all databases.
-# Ver. 4.0: March, 2015
-# ... More validations and bug fixes.
-# ... Support for config file.
-# ... Detecting source dump types (compressed/sql).
-# ... Support for compressed backup and bz2 format.
-# Credit: Andrzej Wroblewski (andrzej.wroblewski@packetstorm.pl) for his inputs on compressed backup & bz2 support.
-# Ver. 5.0: Apr, 2015
-# ... Describing the dump, listing all databases and tables
-# ... Extracting one or more tables from single database
-# Ver. 6.1: Oct, 2015
-# ... Bug fixing in REGEXP extraction functionlity
-# ... Bug fixing in describe functionality
-# ... Preserving time_zone & charset env settings in extracted sqls.
-# Credit: @PeterTheDBA helped understanding the possible issues with environment variable settings included in first 17 lines of mysqldump.
-##
+# Follow GIT: https://github.com/akositey/sequelprodumpsplitter/
+# Credit: Kedar Vaijanapurkar for creating mysqldumpsplitter which this project is based from
 
 # ToDo: Work with straming input
 ## Formating Colour
@@ -56,22 +30,22 @@ TABLE_NAME='';
 DB_NAME='';
 COMPRESSION='gzip';
 DECOMPRESSION='cat';
-VERSION=6.1
+VERSION=1.0
 
 ## Usage Description
 usage()
 {
         echo "\n\t\t\t\t\t\t\t${txtgrn}${txtund}************ Usage ************ \n"${txtrst};
-        echo "${txtgrn}sh mysqldumpsplitter.sh --source filename --extract [DB|TABLE|DBTABLES|ALLDBS|ALLTABLES|REGEXP] --match_str string --compression [gzip|pigz|bzip2|xz|pxz|none] --decompression [gzip|pigz|bzip2|xz|pxz|none] --output_dir [path to output dir] [--config /path/to/config] ${txtrst}"
+        echo "${txtgrn}sh sequelprodumpsplitter.sh --source filename --extract [TABLE|ALLTABLES|REGEXP] --match_str string --compression [gzip|pigz|bzip2|none] --decompression [gzip|pigz|bzip2|none] --output_dir [path to output dir] [--config /path/to/config] ${txtrst}"
         echo "${txtund}                                                    ${txtrst}"
         echo "OPTIONS:"
         echo "${txtund}                                                    ${txtrst}"
-        echo "  --source: mysqldump filename to process. It could be a compressed or regular file."
+        echo "  --source: Sequel Pro SQL dump filename to process. It could be a compressed or regular file."
         echo "  --desc: This option will list out all databases and tables."
-        echo "  --extract: Specify what to extract. Possible values DB, TABLE, ALLDBS, ALLTABLES, REGEXP"
+        echo "  --extract: Specify what to extract. Possible values  TABLE, ALLTABLES, REGEXP"
         echo "  --match_str: Specify match string for extract command option."
-        echo "  --compression: gzip/pigz/bzip2/xz/pxz/none (default: gzip). Extracted file will be of this compression."
-        echo "  --decompression: gzip/pigz/bzip2/xz/pxz/none (default: gzip). This will be used against input file."
+        echo "  --compression: gzip/pigz/bzip2/none (default: gzip). Extracted file will be of this compression."
+        echo "  --decompression: gzip/pigz/bzip2/none (default: gzip). This will be used against input file."
         echo "  --output_dir: path to output dir. (default: ./out/)"
         echo "  --config: path to config file. You may use --config option to specify the config file that includes following variables."
         echo "\t\tSOURCE=
@@ -94,8 +68,6 @@ parse_result()
         ## Validate SOURCE is provided and exists
         if [ -z $SOURCE ]; then
             echo "${txtred}ERROR: Source file not specified or does not exist. (Entered: $SOURCE)${txtrst}"
-            echo "${txtgrn}* Make sure --source is first argument. ${txtrst}";
-            exit 2;
         elif [ ! -f $SOURCE ]; then
             echo "${txtred}ERROR: Source file does not exist. (Entered: $SOURCE)${txtrst}"
             exit 2;
@@ -103,12 +75,12 @@ parse_result()
 
         ## Parse Extract Operation
         case $EXTRACT in
-                ALLDBS|ALLTABLES|DESCRIBE )
+                ALLTABLES|DESCRIBE)
                         if [ "$MATCH_STR" != '' ]; then
                             echo "${txtylw}Ignoring option --match_string.${txtrst}"
                         fi;
                          ;;
-                DB|TABLE|REGEXP|DBTABLE)
+                TABLE|REGEXP)
                         if [ "$MATCH_STR" = '' ]; then
                             echo "${txtred}ERROR: Expecting input for option --match_string.${txtrst}"
                             exit 1;
@@ -139,22 +111,6 @@ parse_result()
                 fi;
                 echo "${txtgrn}Setting compression as $COMPRESSION.${txtrst}";
                 EXT="sql.bz2";
-        elif [ "$COMPRESSION" = 'xz' ]; then
-                which $COMPRESSION &>/dev/null
-                if [ $? -ne 0 ]; then
-                        echo "${txtred}WARNING:$COMPRESSION appears having issues, using default gzip.${txtrst}";
-                        COMPRESSION="gzip";
-                fi;
-                echo "${txtgrn}Setting compression as $COMPRESSION.${txtrst}";
-                EXT="sql.xz";
-        elif [ "$COMPRESSION" = 'pxz' ]; then
-                which $COMPRESSION &>/dev/null
-                if [ $? -ne 0 ]; then
-                        echo "${txtred}WARNING:$COMPRESSION appears having issues, using default gzip.${txtrst}";
-                        COMPRESSION="gzip";
-                fi;
-                echo "${txtgrn}Setting compression as $COMPRESSION.${txtrst}";
-                EXT="sql.xz";
         else
                 COMPRESSION='gzip';
                 echo "${txtgrn}Setting compression $COMPRESSION (default).${txtrst}";
@@ -184,24 +140,6 @@ parse_result()
                         DECOMPRESSION="bzip2 -d -c";
                 fi;
                 echo "${txtgrn}Setting decompression as $DECOMPRESSION.${txtrst}";
-       elif [ "$DECOMPRESSION" = 'xz' ]; then
-                which $DECOMPRESSION &>/dev/null
-                if [ $? -ne 0 ]; then
-                        echo "${txtred}WARNING:$DECOMPRESSION appears having issues, using default gzip.${txtrst}";
-                        DECOMPRESSION="gzip -d -c";
-                else
-                        DECOMPRESSION="xz -d -c";
-                fi;
-                echo "${txtgrn}Setting decompression as $DECOMPRESSION.${txtrst}";
-       elif [ "$DECOMPRESSION" = 'pxz' ]; then
-                which $DECOMPRESSION &>/dev/null
-                if [ $? -ne 0 ]; then
-                        echo "${txtred}WARNING:$DECOMPRESSION appears having issues, using default gzip.${txtrst}";
-                        DECOMPRESSION="gzip -d -c";
-                else
-                        DECOMPRESSION="pxz -d -c";
-                fi;
-                echo "${txtgrn}Setting decompression as $DECOMPRESSION.${txtrst}";
         else
                 DECOMPRESSION="gzip -d -c";
                 echo "${txtgrn}Setting decompression $DECOMPRESSION (default).${txtrst}";
@@ -215,7 +153,7 @@ parse_result()
         then
                 echo "${txtylw}File $SOURCE is a compressed dump.${txtrst}"
                 if [ "$DECOMPRESSION" = 'cat' ]; then
-                        echo "${txtred} The input file $SOURCE appears to be a compressed dump. \n While the decompression is set to none.\n Please specify ${txtund}--decompression [gzip|bzip2|pigz|xz|pxz]${txtrst}${txtred} argument.${txtrst}";
+                        echo "${txtred} The input file $SOURCE appears to be a compressed dump. \n While the decompression is set to none.\n Please specify ${txtund}--decompression [gzip|bzip2|pigz]${txtrst}${txtred} argument.${txtrst}";
                         exit 1;
                 fi;
         else
@@ -243,7 +181,7 @@ echo "${txtylw}Processing: Extract $EXTRACT $MATCH_STR from $SOURCE with compres
 
 }
 
-# Include first 17 lines of full mysqldump - preserve time_zone/charset/environment variables.
+# Include first 20 lines of full Sequel Pro SQL dump - preserve time_zone/charset/environment variables.
 include_dump_info()
 {
         if [ $1 = "" ]; then
@@ -252,106 +190,57 @@ include_dump_info()
         fi;
         OUTPUT_FILE=$1
 
-        echo "Including environment settings from mysqldump."
-        $DECOMPRESSION $SOURCE | head -17 | $COMPRESSION > $OUTPUT_DIR/$OUTPUT_FILE.$EXT
-        echo "" | $COMPRESSION >> $OUTPUT_DIR/$MATCH_STR.$EXT
-        echo "/* -- Splitted with mysqldumpsplitter (http://goo.gl/WIWj6d) -- */" | $COMPRESSION >> $OUTPUT_DIR/$OUTPUT_FILE.$EXT
-        echo "" | $COMPRESSION >> $OUTPUT_DIR/$MATCH_STR.$EXT
+        echo "Including environment settings from Sequel Pro SQL dump."
+        $DECOMPRESSION $SOURCE | head -20 | $COMPRESSION > $OUTPUT_DIR/$OUTPUT_FILE.$EXT
+        echo "/* -- Splitted with sequelprodumpsplitter (https://github.com/akositey/sequelprodumpsplitter/) -- */" | $COMPRESSION >> $OUTPUT_DIR/$OUTPUT_FILE.$EXT
+        echo "\n" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
 }
 
 ## Actual dump splitting
 dump_splitter()
 {
         case $EXTRACT in
-                DB)
-                        # Include first 17 lines of standard mysqldump to preserve time_zone and charset.
-                        include_dump_info $MATCH_STR
-
-                        echo "Extracting Database: $MATCH_STR";
-                        $DECOMPRESSION $SOURCE | sed -n "/^-- Current Database: \`$MATCH_STR\`/,/^-- Current Database: /p" | $COMPRESSION >> $OUTPUT_DIR/$MATCH_STR.$EXT
-                        echo "${txtbld} Database $MATCH_STR  extracted from $SOURCE at $OUTPUT_DIR${txtrst}"
-                        ;;
-
                 TABLE)
-                        # Include first 17 lines of standard mysqldump to preserve time_zone and charset.
-                        include_dump_info $MATCH_STR
+                        tablename=$MATCH_STR
+                        # Include first 20 lines of standard Sequel Pro SQL dump to preserve time_zone and charset.
+                        include_dump_info $tablename
 
                         #Loop for each tablename found in provided dumpfile
-                        echo "Extracting $MATCH_STR."
+                        echo "Extracting $tablename."
                         #Extract table specific dump to tablename.sql
-                        $DECOMPRESSION  $SOURCE | sed -n "/^-- Table structure for table \`$MATCH_STR\`/,/^-- Table structure for table/p" | $COMPRESSION >> $OUTPUT_DIR/$MATCH_STR.$EXT
-                        echo "${txtbld} Table $MATCH_STR  extracted from $SOURCE at $OUTPUT_DIR${txtrst}"
-                        ;;
-
-                ALLDBS)
-                        for dbname in $($DECOMPRESSION $SOURCE | grep -E "^-- Current Database: " | awk -F"\`" {'print $2'})
-                        do
-                         # Include first 17 lines of standard mysqldump to preserve time_zone and charset.
-                         include_dump_info $dbname
-
-                                echo "Extracting Database $dbname..."
-                                #Extract database specific dump to database.sql.gz
-                                $DECOMPRESSION $SOURCE | sed -n "/^-- Current Database: \`$dbname\`/,/^-- Current Database: /p" | $COMPRESSION >> $OUTPUT_DIR/$dbname.$EXT
-                                DB_COUNT=$((DB_COUNT+1))
-                         echo "${txtbld}Database $dbname extracted from $SOURCE at $OUTPUT_DIR/$dbname.$EXT${txtrst}"
-                        done;
-                        echo "${txtbld}Total $DB_COUNT databases extracted.${txtrst}"
+                        $DECOMPRESSION $SOURCE | sed -n -e "/^# Dump of table \b$tablename\b/,/UNLOCK TABLES;/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
+                        echo "${txtbld} Table $tablename  extracted from $SOURCE at $OUTPUT_DIR${txtrst}"
                         ;;
 
                 ALLTABLES)
-
-                        for tablename in $($DECOMPRESSION $SOURCE | grep "Table structure for table " | awk -F"\`" {'print $2'})
+                        for tablename in $($DECOMPRESSION $SOURCE | grep "# Dump of table " | awk -F" " {'print $5'})
                         do
-                         # Include first 17 lines of standard mysqldump to preserve time_zone and charset.
+                         # Include first 20 lines of standard Sequel Pro SQL dump to preserve time_zone and charset.
                          include_dump_info $tablename
 
                          #Extract table specific dump to tablename.sql
-                         $DECOMPRESSION $SOURCE | sed -n "/^-- Table structure for table \`$tablename\`/,/^-- Table structure for table/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
+                         $DECOMPRESSION $SOURCE | sed -n -e "/^# Dump of table \b$tablename\b/,/UNLOCK TABLES;/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
                          TABLE_COUNT=$((TABLE_COUNT+1))
-                         echo "${txtbld}Table $tablename extracted from $DUMP_FILE at $OUTPUT_DIR/$tablename.$EXT${txtrst}"
+                         echo "${txtbld}Table $tablename extracted from $SOURCE at $OUTPUT_DIR/$tablename.$EXT${txtrst}"
                         done;
                          echo "${txtbld}Total $TABLE_COUNT tables extracted.${txtrst}"
                         ;;
                 REGEXP)
 
                         TABLE_COUNT=0;
-                        for tablename in $($DECOMPRESSION $SOURCE | grep -E "Table structure for table \`$MATCH_STR" | awk -F"\`" {'print $2'})
+                        for tablename in $($DECOMPRESSION $SOURCE | grep -E "# Dump of table $MATCH_STR" | awk -F" " {'print $5'})
                         do
-                         # Include first 17 lines of standard mysqldump to preserve time_zone and charset.
+                         # Include first 20 lines of standard Sequel Pro SQL dump to preserve time_zone and charset.
                          include_dump_info $tablename
 
                          echo "Extracting $tablename..."
                                 #Extract table specific dump to tablename.sql
-                                $DECOMPRESSION $SOURCE | sed -n "/^-- Table structure for table \`$tablename\`/,/^-- Table structure for table/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
-                         echo "${txtbld}Table $tablename extracted from $DUMP_FILE at $OUTPUT_DIR/$tablename.$EXT${txtrst}"
+                                $DECOMPRESSION $SOURCE | sed -n -e "/^# Dump of table \b$tablename\b/,/UNLOCK TABLES;/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
+                         echo "${txtbld}Table $tablename extracted from $SOURCE at $OUTPUT_DIR/$tablename.$EXT${txtrst}"
                                 TABLE_COUNT=$((TABLE_COUNT+1))
                         done;
                         echo "${txtbld}Total $TABLE_COUNT tables extracted.${txtrst}"
                         ;;
-
-                DBTABLE)
-
-                        MATCH_DB=`echo $MATCH_STR | awk -F "." {'print $1'}`
-                        MATCH_TBLS=`echo $MATCH_STR | awk -F "." {'print $2'}`
-                        if [ "$MATCH_TBLS" = "*" ]; then
-                         MATCH_TBLS='';
-                        fi;
-                        TABLE_COUNT=0;
-
-                        for tablename in $( $DECOMPRESSION $SOURCE | sed -n "/^-- Current Database: \`$MATCH_DB\`/,/^-- Current Database: /p" | grep -E "^-- Table structure for table \`$MATCH_TBLS" | awk -F '\`' {'print $2'} )
-                        do
-                                echo "Extracting $tablename..."
-                                #Extract table specific dump to tablename.sql
-                         # Include first 17 lines of standard mysqldump to preserve time_zone and charset.
-                         include_dump_info $tablename
-
-                                $DECOMPRESSION $SOURCE | sed -n "/^-- Current Database: \`$MATCH_DB\`/,/^-- Current Database: /p" | sed -n "/^-- Table structure for table \`$tablename\`/,/^-- Table structure for table/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
-                         echo "${txtbld}Table $tablename extracted from $DUMP_FILE at $OUTPUT_DIR/$tablename.$EXT${txtrst}"
-                                TABLE_COUNT=$((TABLE_COUNT+1))
-                        done;
-                        echo "${txtbld}Total $TABLE_COUNT tables extracted from $MATCH_DB.${txtrst}"
-                        ;;
-
                 *)      echo "Wrong option, exiting.";
                         usage;
                         exit 1;;
@@ -409,7 +298,7 @@ while [ "$1" != "" ]; do
                         echo "-------------------------------";
                         echo "Database\t\tTables";
                         echo "-------------------------------";
-                        $DECOMPRESSION $SOURCE | grep -E "(^-- Current Database:|^-- Table structure for table)" | sed  's/-- Current Database: /-------------------------------\n/' | sed 's/-- Table structure for table /\t\t/'| sed 's/`//g' ;
+                        $DECOMPRESSION $SOURCE | grep -E "(^# Database:|^# Dump of table)" | sed  's/# Database: /-------------------------------\n/' | sed 's/# Dump of table /\t\t/'| sed 's/`//g' ;
                         echo "-------------------------------";
                         exit 0;
                 ;;
