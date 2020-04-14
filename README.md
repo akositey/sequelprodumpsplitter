@@ -25,50 +25,42 @@ split / extract tables from Sequel Pro SQL dump.
 
 
 ## Sample Recipes
-#### Extract single table from Sequel Pro SQL dump:
+1. Extract single table from Sequel Pro SQL dump:<br>
 `sh sequelprodumpsplitter.sh --source filename --extract TABLE --match_str table-name`
 
 	Above command will create sql for specified table from specified Sequel Pro SQL dump file and store it in compressed format to database-name.sql.gz.
 
-#### Extract all table from Sequel Pro SQL dump:
-`sh sequelprodumpsplitter.sh --source filename --extract ALLTABLES`
+2. Extract all table from Sequel Pro SQL dump:<br>
+	`sh sequelprodumpsplitter.sh --source filename --extract ALLTABLES`
 
-	if the dump is not compressed, and you don't want to compress the output as well, you can do:
-`sh sequelprodumpsplitter.sh --source filename --decompression none --compression none --extract ALLTABLES`
+	if the dump is not compressed, and you don't want to compress the output as well, you can do:<br>
+	`sh sequelprodumpsplitter.sh --source filename --decompression none --compression none --extract ALLTABLES`
 
 	Above command will extract all tables from specified Sequel Pro SQL dump file and store it in compressed format to individual table-name.sql.gz.
 
-#### Extract tables matching regular expression from Sequel Pro SQL dump:
-
-`sh sequelprodumpsplitter.sh --source filename --extract REGEXP --match_str regular-expression`
+3. Extract tables matching regular expression from Sequel Pro SQL dump:<br>
+	`sh sequelprodumpsplitter.sh --source filename --extract REGEXP --match_str regular-expression`
 
 	Above command will create sqls for tables matching specified regular expression from specified Sequel Pro SQL dump file and store it in compressed format to individual table-name.sql.gz.
 
-#### Extract list of tables from Sequel Pro SQL dump:
-
-`sh sequelprodumpsplitter.sh --source filename --extract REGEXP --match_str '(table1|table2|table3)'`
+4. Extract list of tables from Sequel Pro SQL dump:<br>
+	`sh sequelprodumpsplitter.sh --source filename --extract REGEXP --match_str '(table1|table2|table3)'`
 
 	Above command will extract tables from the specified "filename" Sequel Pro SQL dump  file and store them in compressed format to individual table-name.sql.gz.
 
-#### Extract all tables from Sequel Pro SQL dump in a different folder:
-`sh sequelprodumpsplitter.sh --source filename --extract ALLTABLES --output_dir /path/to/extracts/`
+5. Extract all tables from Sequel Pro SQL dump in a different folder:<br>
+	`sh sequelprodumpsplitter.sh --source filename --extract ALLTABLES --output_dir /path/to/extracts/`
 
 	Above command will extract all tables from specified Sequel Pro SQL dump file and extract tables in compressed format to individual files, table-name.sql.gz stored under /path/to/extracts/.
 	The script will create the folder /path/to/extracts/ if not exists.
 
-#### List content of the Sequel Pro SQL dump file
-`sh sequelprodumpsplitter.sh --source filename --desc`
+6. List content of the Sequel Pro SQL dump file<br>
+	`sh sequelprodumpsplitter.sh --source filename --desc`
 
 	Above command will list databases and tables from the dump file.
 
 ## Credits
-Kedar Vaijanapurkar for [mysqldumpsplitter](https://github.com/kedarvj/mysqldumpsplitter)
+- Kedar Vaijanapurkar for [mysqldumpsplitter](https://github.com/kedarvj/mysqldumpsplitter)
 
-## MIT License
-	Copyright 2020 Chester Martinez
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+## License
+[The MIT License](https://opensource.org/licenses/MIT)
