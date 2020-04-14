@@ -1,5 +1,5 @@
 # sequelprodumpsplitter
-split / extract tables from Sequel Pro SQL dump.
+split / extract tables from [Sequel Pro](https://github.com/sequelpro/sequelpro) SQL dump.
 
 ## Usage
 `sh sequelprodumpsplitter.sh --source /path/to/dump <method> <options>`
