@@ -191,7 +191,7 @@ include_dump_info()
         OUTPUT_FILE=$1
 
         echo "Including environment settings from Sequel Pro SQL dump."
-        $DECOMPRESSION $SOURCE | head -20 | $COMPRESSION > $OUTPUT_DIR/$OUTPUT_FILE.$EXT
+        $DECOMPRESSION "$SOURCE" | head -20 | $COMPRESSION > $OUTPUT_DIR/$OUTPUT_FILE.$EXT
         echo "/* -- Splitted with sequelprodumpsplitter (https://github.com/akositey/sequelprodumpsplitter/) -- */" | $COMPRESSION >> $OUTPUT_DIR/$OUTPUT_FILE.$EXT
         echo "\n" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
 }
@@ -208,18 +208,18 @@ dump_splitter()
                         #Loop for each tablename found in provided dumpfile
                         echo "Extracting $tablename."
                         #Extract table specific dump to tablename.sql
-                        $DECOMPRESSION $SOURCE | sed -n -e "/^# Dump of table \b$tablename\b/,/UNLOCK TABLES;/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
+                        $DECOMPRESSION "$SOURCE" | sed -n -e "/^# Dump of table \b$tablename\b/,/UNLOCK TABLES;/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
                         echo "${txtbld} Table $tablename  extracted from $SOURCE at $OUTPUT_DIR${txtrst}"
                         ;;
 
                 ALLTABLES)
-                        for tablename in $($DECOMPRESSION $SOURCE | grep "# Dump of table " | awk -F" " {'print $5'})
+                        for tablename in $($DECOMPRESSION "$SOURCE" | grep "# Dump of table " | awk -F" " {'print $5'})
                         do
                          # Include first 20 lines of standard Sequel Pro SQL dump to preserve time_zone and charset.
                          include_dump_info $tablename
 
                          #Extract table specific dump to tablename.sql
-                         $DECOMPRESSION $SOURCE | sed -n -e "/^# Dump of table \b$tablename\b/,/UNLOCK TABLES;/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
+                         $DECOMPRESSION "$SOURCE" | sed -n -e "/^# Dump of table \b$tablename\b/,/UNLOCK TABLES;/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
                          TABLE_COUNT=$((TABLE_COUNT+1))
                          echo "${txtbld}Table $tablename extracted from $SOURCE at $OUTPUT_DIR/$tablename.$EXT${txtrst}"
                         done;
@@ -228,14 +228,14 @@ dump_splitter()
                 REGEXP)
 
                         TABLE_COUNT=0;
-                        for tablename in $($DECOMPRESSION $SOURCE | grep -E "# Dump of table $MATCH_STR" | awk -F" " {'print $5'})
+                        for tablename in $($DECOMPRESSION "$SOURCE" | grep -E "# Dump of table $MATCH_STR" | awk -F" " {'print $5'})
                         do
                          # Include first 20 lines of standard Sequel Pro SQL dump to preserve time_zone and charset.
                          include_dump_info $tablename
 
                          echo "Extracting $tablename..."
                                 #Extract table specific dump to tablename.sql
-                                $DECOMPRESSION $SOURCE | sed -n -e "/^# Dump of table \b$tablename\b/,/UNLOCK TABLES;/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
+                                $DECOMPRESSION "$SOURCE" | sed -n -e "/^# Dump of table \b$tablename\b/,/UNLOCK TABLES;/p" | $COMPRESSION >> $OUTPUT_DIR/$tablename.$EXT
                          echo "${txtbld}Table $tablename extracted from $SOURCE at $OUTPUT_DIR/$tablename.$EXT${txtrst}"
                                 TABLE_COUNT=$((TABLE_COUNT+1))
                         done;
@@ -298,7 +298,7 @@ while [ "$1" != "" ]; do
                         echo "-------------------------------";
                         echo "Database\t\tTables";
                         echo "-------------------------------";
-                        $DECOMPRESSION $SOURCE | grep -E "(^# Database:|^# Dump of table)" | sed  's/# Database: /-------------------------------\n/' | sed 's/# Dump of table /\t\t/'| sed 's/`//g' ;
+                        $DECOMPRESSION "$SOURCE" | grep -E "(^# Database:|^# Dump of table)" | sed  's/# Database: /-------------------------------\n/' | sed 's/# Dump of table /\t\t/'| sed 's/`//g' ;
                         echo "-------------------------------";
                         exit 0;
                 ;;
