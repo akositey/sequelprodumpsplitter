@@ -66,9 +66,9 @@ parse_result()
 
 
         ## Validate SOURCE is provided and exists
-        if [ -z $SOURCE ]; then
+        if [ -z "$SOURCE" ]; then
             echo "${txtred}ERROR: Source file not specified or does not exist. (Entered: $SOURCE)${txtrst}"
-        elif [ ! -f $SOURCE ]; then
+        elif [ ! -f "$SOURCE" ]; then
             echo "${txtred}ERROR: Source file does not exist. (Entered: $SOURCE)${txtrst}"
             exit 2;
         fi
@@ -147,7 +147,7 @@ parse_result()
 
 
         ## Verify file type:
-        filecommand=`file $SOURCE`
+        filecommand=`file "$SOURCE"`
         echo $filecommand | grep "compressed"  1>/dev/null
         if [ `echo $?` -eq 0 ]
         then
@@ -262,7 +262,7 @@ fi
 while [ "$1" != "" ]; do
     case $1 in
         --source|-S  )   shift
-                if [ -z $1 ]; then
+                if [ -z "$1" ]; then
                         missing_arg --source
                 fi;
                 SOURCE=$1 ;;
